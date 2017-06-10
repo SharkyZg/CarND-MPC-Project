@@ -128,23 +128,6 @@ int main() {
           Eigen::VectorXd state(6);
           state << 0,0,0,v,cte,epsi;
 
-          json msgJson;
-          // NOTE: Remember to divide by deg2rad(25) before you send the steering value back.
-          // Otherwise the values will be in between [-deg2rad(25), deg2rad(25] instead of [-1, 1].
-          msgJson["steering_angle"] = steer_value;
-          msgJson["throttle"] = throttle_value;
-
-          //Display the MPC predicted trajectory 
-          vector<double> mpc_x_vals;
-          vector<double> mpc_y_vals;
-
-          //.. add (x,y) points to list here, points are in reference to the vehicle's coordinate system
-          // the points in the simulator are connected by a Green line
-
-          msgJson["mpc_x"] = mpc_x_vals;
-          msgJson["mpc_y"] = mpc_y_vals;
-
-
 
           //.. add (x,y) points to list here, points are in reference to the vehicle's coordinate system
           // the points in the simulator are connected by a Yellow line
@@ -154,12 +137,6 @@ int main() {
 
           vector<double> next_x_vals;
           vector<double> next_y_vals;
-          
-          msgJson["next_x"] = next_x_vals;
-          msgJson["next_y"] = next_y_vals;
-          
-          
-          
 
           
           double poly_inc = 2.5;
@@ -170,7 +147,35 @@ int main() {
             next_y_vals.push_back(polyeval(coeffs, poly_inc*i));
           }
           
-
+          //Display the MPC predicted trajectory 
+          vector<double> mpc_x_vals;
+          vector<double> mpc_y_vals;
+          
+          for (int i = 2; i < vars.size(); i++)
+          {
+            if(i%2 == 0)
+            {
+              mpc_x_vals.push_back(vars[i]);
+            }
+            else
+            {
+              mpc_y_vals.push_back(vars[i]);
+            }
+          }
+            
+          double Lf = 2.67;
+          
+          json msgJson;
+          msgJson["steering_angle"] = vars[0]/(deg2rad(25)*Lf);
+          msgJson["throttle"] = vars[1];
+          
+          msgJson["next_x"] = next_x_vals;
+          msgJson["next_y"] = next_y_vals;
+          
+          msgJson["mpc_x"] = mpc_x_vals;
+          msgJson["mpc_y"] = mpc_y_vals;
+          
+          
           auto msg = "42[\"steer\"," + msgJson.dump() + "]";
           std::cout << msg << std::endl;
           // Latency
