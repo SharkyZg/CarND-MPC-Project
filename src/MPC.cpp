@@ -7,7 +7,7 @@ using CppAD::AD;
 
 // TODO: Set the timestep length and duration
 size_t N = 10;
-double dt = 0.1;
+double dt = .1;
 
 // This value assumes the model presented in the classroom is used.
 //
@@ -32,7 +32,7 @@ size_t v_start = psi_start + N;
 size_t cte_start = v_start + N;
 size_t epsi_start = cte_start + N;
 size_t delta_start = epsi_start + N;
-size_t a_start = delta_start + N;
+size_t a_start = delta_start + N - 1;
 
 class FG_eval {
  public:
@@ -148,13 +148,13 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
   }
   
   for (int i = delta_start; i < a_start; i++) {
-    vars_lowerbound[i] = -0.436332;
-    vars_upperbound[i] = 0.436332;
+    vars_lowerbound[i] = -0.436332*Lf;
+    vars_upperbound[i] = 0.436332*Lf;
   }
   
   for (int i = a_start; i < n_vars; i++) {
-    vars_lowerbound[i] = -1.0*Lf;
-    vars_upperbound[i] = 1.0 *Lf;
+    vars_lowerbound[i] = -1.0;
+    vars_upperbound[i] = 1.0;
   }
   
   // Lower and upper limits for the constraints
