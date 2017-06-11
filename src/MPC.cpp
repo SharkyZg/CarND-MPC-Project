@@ -9,6 +9,9 @@ using CppAD::AD;
 size_t N = 10;
 double dt = .1;
 
+double a_last = 0;
+double delta_last = 0;
+
 // This value assumes the model presented in the classroom is used.
 //
 // It was obtained by measuring the radius formed by running the vehicle in the
@@ -115,12 +118,26 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
   size_t i;
   typedef CPPAD_TESTVECTOR(double) Dvector;
   
+    
   double x = state[0];
   double y = state[1];
   double psi = state[2];
   double v = state[3];
   double cte = state[4];
   double epsi = state[5];
+  
+  double f = coeffs[0] + coeffs[1] * x + coeffs[2] * x * x + coeffs[3] * x * x * x ;
+  double psides = CppAD::atan(3*coeffs[3]*x*x + 2*coeffs[2]*x+coeffs[1]);
+  
+  x = x + v * CppAD::cos(psi)*.1;
+  y = y + v * CppAD::sin(psi)*.1;
+
+  psi = psi - delta_last*Lf*.1;
+  
+  v = v + a_last * .1;
+
+  cte = (f-y) + (v*CppAD::sin(epsi)*.1);
+  epsi = psi - psides;
   
   // TODO: Set the number of model variables (includes both states and inputs).
   // For example: If the state is a 4 element vector, the actuators is a 2
@@ -226,6 +243,9 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
   
   result.push_back(solution.x[delta_start]);
   result.push_back(solution.x[a_start]);
+  
+  delta_last = solution.x[delta_start];
+  a_last = solution.x[a_start];
   
   for (int i = 0; i < N-1; i++)
   {
